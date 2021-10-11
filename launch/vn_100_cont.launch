@@ -6,6 +6,7 @@
     <arg name="frame_id" default="$(arg imu)"/>
     <arg name="baudrate" default="921600"/>
     <arg name="imu_rate" default="100"/>
+    <arg name="binary_async_mode" default="1"/>
 
     <!-- Sync out settings -->
     <!-- to disable this just set it to < 0 -->
@@ -25,6 +26,7 @@
         <param name="frame_id" type="string" value="$(arg frame_id)"/>
         <param name="imu_rate" type="int" value="$(arg imu_rate)"/>
         <param name="binary_output" type="bool" value="$(arg binary_output)"/>
+        <param name="binary_async_mode" type="int" value="$(arg binary_async_mode)"/>
         <param name="enable_mag" type="bool" value="$(arg enable_mag)"/>
         <param name="enable_pres" type="bool" value="$(arg enable_pres)"/>
         <param name="enable_temp" type="bool" value="$(arg enable_temp)"/>
