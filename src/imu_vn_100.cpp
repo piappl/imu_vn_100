@@ -27,11 +27,18 @@ using sensor_msgs::MagneticField;
 using sensor_msgs::Temperature;
 
 void RosVector3FromVnVector3(geometry_msgs::Vector3& ros_vec3,
-                             const VnVector3& vn_vec3);
+                             const VnVector3& vn_vec3,
+                             bool enu_output = false,
+                             bool reverse_z = false);
 void RosQuaternionFromVnQuaternion(geometry_msgs::Quaternion& ros_quat,
-                                   const VnQuaternion& vn_quat);
+                                   const VnQuaternion& vn_quat,
+                                   bool enu_output = false);
 void FillImuMessage(sensor_msgs::Imu& imu_msg,
-                    const VnDeviceCompositeData& data, bool binary_output);
+                    const VnDeviceCompositeData& data,
+                    bool binary_output,
+                    bool enu_output = false);
+
+tf2::Quaternion ImuNedToEnu(double x, double y, double z, double w);
 
 void AsyncListener(void* sender, VnDeviceCompositeData* data) {
   imu_vn_100_ptr->PublishData(*data);
@@ -121,6 +128,8 @@ void ImuVn100::LoadParameters() {
 
   pnh_.param("binary_output", binary_output_, true);
   pnh_.param("binary_async_mode", binary_async_mode, BINARY_ASYNC_MODE_SERIAL_1);
+
+  pnh_.param("enu_output", enu_output, false);
 
   FixImuRate();
   sync_info_.FixSyncRate();
@@ -275,7 +284,7 @@ void ImuVn100::PublishData(const VnDeviceCompositeData& data) {
   imu_msg.header.stamp = t_now - imu_timestamp_offset_;
   imu_msg.header.frame_id = frame_id_;
 
-  FillImuMessage(imu_msg, data, binary_output_);
+  FillImuMessage(imu_msg, data, binary_output_, enu_output);
   pd_imu_.Publish(imu_msg);
 
   if (enable_mag_) {
@@ -332,34 +341,73 @@ void VnEnsure(const VnErrorCode& error_code) {
 }
 
 void RosVector3FromVnVector3(geometry_msgs::Vector3& ros_vec3,
-                             const VnVector3& vn_vec3) {
-  ros_vec3.x = vn_vec3.c0;
-  ros_vec3.y = vn_vec3.c1;
-  ros_vec3.z = vn_vec3.c2;
+                             const VnVector3& vn_vec3,
+                             bool enu_output,
+                             bool reverse_z) {
+  if(enu_output) {
+    ros_vec3.x = vn_vec3.c0;
+    ros_vec3.y = -vn_vec3.c1;
+    ros_vec3.z = -vn_vec3.c2;
+  }
+  else {
+    ros_vec3.x = vn_vec3.c0;
+    ros_vec3.y = vn_vec3.c1;
+    ros_vec3.z = vn_vec3.c2;
+  }
+
+  if(reverse_z) {
+    // Linear acceleration on z from VN-100 seems to be reversed
+    ros_vec3.z = -ros_vec3.z;
+  }
 }
 
 void RosQuaternionFromVnQuaternion(geometry_msgs::Quaternion& ros_quat,
-                                   const VnQuaternion& vn_quat) {
-  ros_quat.x = vn_quat.x;
-  ros_quat.y = vn_quat.y;
-  ros_quat.z = vn_quat.z;
-  ros_quat.w = vn_quat.w;
+                                   const VnQuaternion& vn_quat,
+                                   bool enu_output) {
+  if(enu_output) {
+    tf2::Quaternion quat = ImuNedToEnu(vn_quat.x, vn_quat.y,
+                                       vn_quat.z, vn_quat.w);
+    ros_quat.x = quat.getX();
+    ros_quat.y = quat.getY();
+    ros_quat.z = quat.getZ();
+    ros_quat.w = quat.getW();
+  }
+  else {
+    ros_quat.x = vn_quat.x;
+    ros_quat.y = vn_quat.y;
+    ros_quat.z = vn_quat.z;
+    ros_quat.w = vn_quat.w;
+  }
 }
 
 void FillImuMessage(sensor_msgs::Imu& imu_msg,
-                    const VnDeviceCompositeData& data, bool binary_output) {
+                    const VnDeviceCompositeData& data,
+                    bool binary_output,
+                    bool enu_output) {
   if (binary_output) {
-    RosQuaternionFromVnQuaternion(imu_msg.orientation, data.quaternion);
+    RosQuaternionFromVnQuaternion(imu_msg.orientation, data.quaternion, enu_output);
     // NOTE: The IMU angular velocity and linear acceleration outputs are
     // swapped. And also why are they different?
     RosVector3FromVnVector3(imu_msg.angular_velocity,
-                            data.accelerationUncompensated);
+                            data.accelerationUncompensated,
+                            enu_output);
     RosVector3FromVnVector3(imu_msg.linear_acceleration,
-                            data.angularRateUncompensated);
+                            data.angularRateUncompensated,
+                            enu_output,
+                            true);
   } else {
-    RosVector3FromVnVector3(imu_msg.linear_acceleration, data.acceleration);
-    RosVector3FromVnVector3(imu_msg.angular_velocity, data.angularRate);
+    RosVector3FromVnVector3(imu_msg.linear_acceleration, data.acceleration, enu_output);
+    RosVector3FromVnVector3(imu_msg.angular_velocity, data.angularRate, enu_output);
   }
+}
+tf2::Quaternion ImuNedToEnu(double x, double y, double z, double w) {
+  double roll, pitch, yaw;
+
+  tf2::Quaternion quat(x, y, z, w);
+  tf2::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+  quat.setRPY(roll, -pitch, -yaw);
+
+  return quat;
 }
 
 }  //  namespace imu_vn_100

@@ -25,6 +25,9 @@
 #include <sensor_msgs/MagneticField.h>
 #include <sensor_msgs/Temperature.h>
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
 #include <boost/chrono/chrono.hpp>
 #include <boost/thread/lock_guard.hpp>
 #include <boost/thread/mutex.hpp>
@@ -140,6 +143,7 @@ class ImuVn100 {
   bool enable_pres_ = true;
   bool enable_temp_ = true;
   bool binary_output_ = true;
+  bool enu_output = false;
 
   int binary_async_mode = 1;
 
