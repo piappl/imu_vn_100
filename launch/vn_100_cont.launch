@@ -1,12 +1,14 @@
 <launch>
     <arg name="output" default="screen"/>
-    <arg name="imu" default="imu"/>
+    <arg name="imu" default="vectornav"/>
 
     <arg name="port" default="/dev/ttyUSB0" />
     <arg name="frame_id" default="$(arg imu)"/>
     <arg name="baudrate" default="921600"/>
-    <arg name="imu_rate" default="100"/>
+    <arg name="imu_rate" default="800"/>
     <arg name="binary_async_mode" default="1"/>
+    <arg name="enu_output" default="true"/>
+    <arg name="reverse_gravity" default="true"/>
 
     <!-- Sync out settings -->
     <!-- to disable this just set it to < 0 -->
@@ -16,9 +18,11 @@
     <arg name="binary_output" default="true"/>
 
     <!-- Ros Topic settings -->
-    <arg name="enable_mag" default="true"/>
+    <arg name="enable_mag" default="false"/>
     <arg name="enable_pres" default="true"/>
     <arg name="enable_temp" default="true"/>
+
+    <node pkg="imu_vn_100" name="set_low_latency" type="set_low_latency.sh" args="$(arg port)"/>
 
     <node pkg="imu_vn_100" name="$(arg imu)" type="imu_vn_100_node" output="$(arg output)">
         <param name="port" type="string" value="$(arg port)"/>
@@ -32,5 +36,7 @@
         <param name="enable_temp" type="bool" value="$(arg enable_temp)"/>
         <param name="sync_rate" type="int" value="$(arg sync_rate)"/>
         <param name="sync_pulse_width_us" type="int" value="$(arg sync_pulse_width_us)"/>
+        <param name="enu_output" type="bool" value="$(arg enu_output)"/>
+        <param name="reverse_gravity" type="bool" value="$(arg reverse_gravity)"/>
     </node>
 </launch>

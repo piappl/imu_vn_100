@@ -36,7 +36,8 @@ void RosQuaternionFromVnQuaternion(geometry_msgs::Quaternion& ros_quat,
 void FillImuMessage(sensor_msgs::Imu& imu_msg,
                     const VnDeviceCompositeData& data,
                     bool binary_output,
-                    bool enu_output = false);
+                    bool enu_output = false,
+                    bool reverse_gravity = false);
 
 tf2::Quaternion ImuNedToEnu(double x, double y, double z, double w);
 
@@ -130,6 +131,7 @@ void ImuVn100::LoadParameters() {
   pnh_.param("binary_async_mode", binary_async_mode, BINARY_ASYNC_MODE_SERIAL_1);
 
   pnh_.param("enu_output", enu_output, false);
+  pnh_.param("reverse_gravity", reverse_gravity, false);
 
   FixImuRate();
   sync_info_.FixSyncRate();
@@ -284,7 +286,7 @@ void ImuVn100::PublishData(const VnDeviceCompositeData& data) {
   imu_msg.header.stamp = t_now - imu_timestamp_offset_;
   imu_msg.header.frame_id = frame_id_;
 
-  FillImuMessage(imu_msg, data, binary_output_, enu_output);
+  FillImuMessage(imu_msg, data, binary_output_, enu_output, reverse_gravity);
   pd_imu_.Publish(imu_msg);
 
   if (enable_mag_) {
@@ -383,7 +385,8 @@ void RosQuaternionFromVnQuaternion(geometry_msgs::Quaternion& ros_quat,
 void FillImuMessage(sensor_msgs::Imu& imu_msg,
                     const VnDeviceCompositeData& data,
                     bool binary_output,
-                    bool enu_output) {
+                    bool enu_output,
+                    bool reverse_gravity) {
   if (binary_output) {
     RosQuaternionFromVnQuaternion(imu_msg.orientation, data.quaternion, enu_output);
     // NOTE: The IMU angular velocity and linear acceleration outputs are
@@ -394,9 +397,9 @@ void FillImuMessage(sensor_msgs::Imu& imu_msg,
     RosVector3FromVnVector3(imu_msg.linear_acceleration,
                             data.angularRateUncompensated,
                             enu_output,
-                            true);
+                            reverse_gravity);
   } else {
-    RosVector3FromVnVector3(imu_msg.linear_acceleration, data.acceleration, enu_output);
+    RosVector3FromVnVector3(imu_msg.linear_acceleration, data.acceleration, enu_output, reverse_gravity);
     RosVector3FromVnVector3(imu_msg.angular_velocity, data.angularRate, enu_output);
   }
 }

@@ -144,6 +144,7 @@ class ImuVn100 {
   bool enable_temp_ = true;
   bool binary_output_ = true;
   bool enu_output = false;
+  bool reverse_gravity = false;
 
   int binary_async_mode = 1;
 
