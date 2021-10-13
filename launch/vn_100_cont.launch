@@ -8,7 +8,7 @@
     <arg name="imu_rate" default="800"/>
     <arg name="binary_async_mode" default="1"/>
     <arg name="enu_output" default="true"/>
-    <arg name="reverse_gravity" default="true"/>
+    <arg name="reverse_gravity" default="false"/>
 
     <!-- Sync out settings -->
     <!-- to disable this just set it to < 0 -->
