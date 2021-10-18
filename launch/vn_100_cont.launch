@@ -5,10 +5,12 @@
     <arg name="port" default="/dev/ttyUSB0" />
     <arg name="frame_id" default="$(arg imu)"/>
     <arg name="baudrate" default="921600"/>
-    <arg name="imu_rate" default="800"/>
+    <!-- Do not set it over 200 - it would break internal vectornav compensation -->
+    <arg name="imu_rate" default="200"/>
     <arg name="binary_async_mode" default="1"/>
     <arg name="enu_output" default="true"/>
     <arg name="reverse_gravity" default="false"/>
+    <arg name="vpe_enable" default="true"/>
 
     <!-- Sync out settings -->
     <!-- to disable this just set it to < 0 -->
@@ -17,10 +19,10 @@
 
     <arg name="binary_output" default="true"/>
 
-    <!-- Ros Topic settings -->
+    <!-- This data stream is disabled in code-->
     <arg name="enable_mag" default="false"/>
-    <arg name="enable_pres" default="true"/>
-    <arg name="enable_temp" default="true"/>
+    <arg name="enable_pres" default="false"/>
+    <arg name="enable_temp" default="false"/>
 
     <node pkg="imu_vn_100" name="set_low_latency" type="set_low_latency.sh" args="$(arg port)"/>
 
@@ -38,5 +40,6 @@
         <param name="sync_pulse_width_us" type="int" value="$(arg sync_pulse_width_us)"/>
         <param name="enu_output" type="bool" value="$(arg enu_output)"/>
         <param name="reverse_gravity" type="bool" value="$(arg reverse_gravity)"/>
+        <param name="vpe_enable" type="bool" value="$(arg vpe_enable)"/>
     </node>
 </launch>
