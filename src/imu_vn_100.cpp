@@ -139,15 +139,15 @@ void ImuVn100::LoadParameters() {
   pnh_.param("vpe_filtering_mode", vpe_filtering_mode_, 1);
   pnh_.param("vpe_tuning_mode", vpe_tuning_mode_, 1);
 
-  pnh_.param("vpe_mag_tuning_base_tuning_x",  vpe_mag_base_tuning_.c0, 4.0);
-  pnh_.param("vpe_mag_tuning_base_tuning_y",  vpe_mag_base_tuning_.c1, 4.0);
-  pnh_.param("vpe_mag_tuning_base_tuning_z",  vpe_mag_base_tuning_.c2, 4.0);
-  pnh_.param("vpe_mag_tuning_adaptive_tuning_x", vpe_mag_adaptive_tuning_.c0, 5.0);
-  pnh_.param("vpe_mag_tuning_adaptive_tuning_y", vpe_mag_adaptive_tuning_.c1, 5.0);
-  pnh_.param("vpe_mag_tuning_adaptive_tuning_z", vpe_mag_adaptive_tuning_.c2, 5.0);
-  pnh_.param("vpe_mag_tuning_adaptive_filtering_x", vpe_mag_adaptive_filtering_.c0, 5.5);
-  pnh_.param("vpe_mag_tuning_adaptive_filtering_y", vpe_mag_adaptive_filtering_.c1, 5.5);
-  pnh_.param("vpe_mag_tuning_adaptive_filtering_z", vpe_mag_adaptive_filtering_.c2, 5.5);
+  pnh_.param("vpe_mag_tuning_base_tuning_x",  vpe_mag_base_tuning_.c0, 10.0);
+  pnh_.param("vpe_mag_tuning_base_tuning_y",  vpe_mag_base_tuning_.c1, 10.0);
+  pnh_.param("vpe_mag_tuning_base_tuning_z",  vpe_mag_base_tuning_.c2, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_tuning_x", vpe_mag_adaptive_tuning_.c0, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_tuning_y", vpe_mag_adaptive_tuning_.c1, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_tuning_z", vpe_mag_adaptive_tuning_.c2, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_filtering_x", vpe_mag_adaptive_filtering_.c0, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_filtering_y", vpe_mag_adaptive_filtering_.c1, 10.0);
+  pnh_.param("vpe_mag_tuning_adaptive_filtering_z", vpe_mag_adaptive_filtering_.c2, 10.0);
 
   pnh_.param("vpe_accel_tuning_base_tuning_x", vpe_accel_base_tuning_.c0, 5.0);
   pnh_.param("vpe_accel_tuning_base_tuning_y", vpe_accel_base_tuning_.c1, 5.0);
@@ -315,6 +315,9 @@ void ImuVn100::Initialize() {
         true));
   }
   }
+
+  // Set the initial heading to 0
+  VnEnsure(vn100_tare(&imu_, true));
 
   CreateDiagnosedPublishers();
 
